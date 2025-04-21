@@ -1,0 +1,333 @@
+{% load static %}
+<header class="navbar">
+  <div class="navbar-container">
+    <!-- Logo and Image -->
+    <div class="logo-container">
+      <a href="{% url 'dashboard' %}" class="logo">
+        <img class="logo-image" alt="SMARTCRM Logo" src="{% static 'images/favicon.ico' %}">
+        <span class="logo-text">SMARTCRM</span>
+      </a>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle navigation menu">☰</button>
+
+    <!-- User Info and Navigation Links -->
+    <div class="user-nav" id="nav-menu">
+      {% if request.user.is_authenticated %}
+        <div class="user-info">
+          {% if request.user.is_organisor %}
+            <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'agents:agent-list' %}" class="nav-link">Agent</a>
+            
+          {% endif %}
+          <a href="{% url 'leads:lead-list' %}" class="nav-link">Leads</a>
+
+          
+          <a href="{% url 'chat:inbox' %}" class="nav-link">
+           Chat
+            {% if unread_message_total > 0 %}
+              <span class="chat-notification">{{ unread_message_total }}</span>
+            {% endif %}
+          </a>
+
+          <span class="welcome-text">Welcome: {{ request.user.username }}</span>
+          
+
+          <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-button">Logout</button>
+          </form>
+        </div>
+      {% else %}
+        <a href="{% url 'signup' %}" class="nav-link">Sign Up</a>
+        <a href="{% url 'login' %}" class="login-button">
+          Login
+          <svg class="login-icon" viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .navbar {
+    padding: 15px 0;
+    background-color: #ffffff;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+  }
+
+  .navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: 500;
+    transition: transform 0.3s ease;
+  }
+
+  .logo:hover {
+    transform: scale(1.05);
+  }
+
+  .logo-image {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s ease;
+  }
+
+  .logo-image:hover {
+    transform: rotate(15deg);
+  }
+
+  .logo-text {
+    margin-left: 10px;
+  }
+
+  .user-nav {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .nav-link {
+    text-decoration: none;
+    color: #333;
+    font-size: 1rem;
+    padding: 5px 10px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    background: #000;
+    bottom: 0;
+    left: 0;
+    transition: width 0.3s ease;
+  }
+
+  .nav-link:hover::after {
+    width: 100%;
+  }
+
+  .nav-link:hover {
+    color: #000;
+  }
+
+  .logout-form {
+    display: inline;
+  }
+
+  .logout-button {
+    background-color: #e5e7eb;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .logout-button:hover {
+    background-color: #d1d5db;
+    transform: translateY(-2px);
+  }
+
+  .login-button {
+    background-color: #e5e7eb;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+  }
+
+  .login-button:hover {
+    background-color: #d1d5db;
+    transform: translateY(-2px);
+  }
+
+  .login-icon {
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  .login-button:hover .login-icon {
+    transform: translateX(5px);
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .menu-toggle:hover {
+    transform: rotate(90deg);
+  }
+
+  @media (max-width: 768px) {
+    .menu-toggle {
+      display: block;
+    }
+
+    .user-nav {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: #f8f9fa;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 10px 20px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 999;
+    }
+
+    .user-nav.show {
+      display: flex;
+      pointer-events: auto;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .user-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .logout-button,
+    .login-button {
+      margin-top: 10px;
+    }
+  }
+  /* Add these styles to your existing CSS */
+
+  /* Chat Link Styling */
+  .nav-link[href*="chat"] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #f0f9ff; /* Light blue background */
+    color: #0369a1 !important; /* Dark blue text */
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .nav-link[href*="chat"]::before {
+    content: "💬";
+    margin-right: 8px;
+    font-size: 1.1em;
+  }
+
+  .nav-link[href*="chat"]:hover {
+    background-color: #e0f2fe; /* Slightly darker blue on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-link[href*="chat"]::after {
+    display: none; /* Remove the underline effect */
+  }
+
+  /* Chat Notification Badge */
+  .chat-notification {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: #ef4444; /* Red */
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .nav-link[href*="chat"] {
+      width: 100%;
+      border-radius: 0;
+      padding: 10px 0;
+      background-color: transparent;
+      color: #333 !important;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .nav-link[href*="chat"]::before {
+      margin-right: 12px;
+    }
+
+    .nav-link[href*="chat"]:hover {
+      background-color: #f3f4f6;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<script>
+  function toggleMenu() {
+    const menu = document.getElementById("nav-menu");
+    menu.classList.toggle("show");
+  }
+  
+  
+</script>
